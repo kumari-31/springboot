@@ -1,0 +1,77 @@
+pipeline {
+  agent any 
+  
+  environment {
+      IMAGE_TAG = "${BUILD_NUMBER}"
+  }
+  
+  stages {
+    
+    stage('Checkout') {
+      steps {
+        checkout scm
+      }
+    }
+    
+    stage('Build and Test') {
+      steps {
+        sh 'cd application/spring-boot-app && mvn clean package'
+      }
+    }
+    
+    stage('Static Code Analysis') {
+      environment {
+        SONAR_URL = "http://10.184.61.211:9000"
+      }
+      steps {
+        withCredentials([string(credentialsId: 'sonar-jenkins', variable: 'SONAR_AUTH_TOKEN')]) {
+          sh 'cd application/spring-boot-app && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+        }
+      }
+    }
+    
+    stage('Build Docker'){
+      steps{
+        script{
+          sh '''
+             echo 'Buid Docker Image'
+             docker build -t kumari3123/springboot:${BUILD_NUMBER} .
+          '''
+        }
+      }
+    }
+           
+    stage('Push the artifacts'){
+      steps{
+        script{
+          withCredentials([usernamePassword(credentialsId: 'docker-credentials', passwordVariable: 'REGISTRY_CREDENTIALS_PSW', usernameVariable: 'REGISTRY_CREDENTIALS_USR')]) {
+            sh '''
+               echo 'Push to Repo'
+               echo "$REGISTRY_CREDENTIALS_PSW" | docker login -u "$REGISTRY_CREDENTIALS_USR" --password-stdin
+               docker push kumari3123/springboot:${BUILD_NUMBER}
+            '''
+	  }
+        }
+      }
+    }
+    
+    stage('Update Deployment File') {
+      steps {
+        script{
+          withCredentials([usernamePassword(credentialsId: 'wordpress-password', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+            sh '''
+               git config user.email "skumari@cdac.in"
+               git config user.name "kumari-31"
+               cat application/spring-boot-app-manifests/deployment.yaml
+               sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" application/spring-boot-app-manifests/deployment.yml
+               git add application/spring-boot-app-manifests/deployment.yml
+               git commit -m "Update deployment image to version ${BUILD_NUMBER}"
+               git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/kumari-31/springboot.git   
+               git push origin HEAD:main
+            '''
+          }
+        }
+      }
+    }
+  }
+}
