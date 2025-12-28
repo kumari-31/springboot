@@ -63,9 +63,9 @@ pipeline {
             sh '''
                git config user.email "skumari@cdac.in"
                git config user.name "kumari-31"
-               cat application/spring-boot-app-manifests/deployment.yaml
+               cat application/spring-boot-app-manifests/deployment.yml
                sed -i "s/replaceImageTag/${BUILD_NUMBER}/g" application/spring-boot-app-manifests/deployment.yml
-               git add application/spring-boot-app-manifests/deployment.yaml
+               git add application/spring-boot-app-manifests/deployment.yml
                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
                git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/kumari-31/springboot.git   
                git push origin HEAD:main
