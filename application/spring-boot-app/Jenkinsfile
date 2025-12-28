@@ -35,6 +35,7 @@ pipeline {
         script{
           sh '''
              echo 'Buid Docker Image'
+			 cd application/spring-boot-app
              docker build -t kumari3123/springboot:${BUILD_NUMBER} .
           '''
         }
@@ -50,7 +51,7 @@ pipeline {
                echo "$REGISTRY_CREDENTIALS_PSW" | docker login -u "$REGISTRY_CREDENTIALS_USR" --password-stdin
                docker push kumari3123/springboot:${BUILD_NUMBER}
             '''
-	  }
+	      }
         }
       }
     }
