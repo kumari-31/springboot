@@ -4,11 +4,10 @@ metadata:
   name: spring-boot-app-service
 spec:
   type: NodePort
-  ports:
-  - name: http
-    port: 80
-    targetPort: 90
-    nodePort: 33300
-    protocol: TCP
   selector:
     app: spring-boot-app
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 90
+      nodePort: 33300
