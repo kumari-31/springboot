@@ -55,6 +55,15 @@ pipeline {
         }
       }
     }
+
+	stage('Checkout K8S manifest SCM(springboot1)'){
+      steps {
+        git credentialsId: 'wordpress-password',
+            url: 'https://github.com/kumari-31/springboot1.git',
+            branch: 'main'
+      }
+    }
+
     
     stage('Update Deployment File') {
       steps {
@@ -63,11 +72,11 @@ pipeline {
             sh '''
                git config user.email "skumari@cdac.in"
                git config user.name "kumari-31"
-               cat application/spring-boot-app-manifests/deployment.yml
-               sed -i "s/\\(kumari3123\\/springboot:\\)[0-9]\\+/\\1${BUILD_NUMBER}/g" application/spring-boot-app-manifests/deployment.yml
-               git add application/spring-boot-app-manifests/deployment.yml
+               cat files/deploy.yaml
+               sed -i "s/\\(kumari3123\\/springboot:\\)[0-9]\\+/\\1${BUILD_NUMBER}/g" files/deploy.yaml
+               git add files/deploy.yaml
                git commit -m "Update deployment image to version ${BUILD_NUMBER}"
-               git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/kumari-31/springboot.git   
+               git remote set-url origin https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/kumari-31/springboot1.git   
                git push origin HEAD:main
             '''
           }
