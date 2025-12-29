@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
         - name: spring-boot-app
-          image: kumari3123/springboot:1
+          image: kumari3123/springboot:7
           ports:
             - containerPort: 90
